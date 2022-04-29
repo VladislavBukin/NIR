@@ -1,0 +1,215 @@
+library("lmtets")
+library("car")
+library("GGally")
+
+data = swiss 
+help(swiss)
+
+#Fertility - объясняемая переменная 
+#Agriculture, Examination, Infant.Mortality - регрессоры 
+
+#среднее значение 
+mean(data$Fertility)
+mean(data$Agriculture)
+mean(data$Examination)
+mean(data$Infant.Mortality)
+
+#абсолютное отклонение - absolute deviation
+data["absolute_deviation_Fertility"] = data$Fertility - mean(data$Fertility)
+data["absolute_deviation_Agriculture"] = data$Agriculture - mean(data$Agriculture)
+data["absolute_deviation_Examination"] = data$Examination - mean(data$Examination)
+data["absolute_deviation_Infant.Mortality"] = data$Infant.Mortality - mean(data$Infant.Mortality)
+
+#дисперсия 
+var(data$Fertility)
+var(data$Agriculture)
+var(data$Examination)
+var(data$Infant.Mortality)
+
+#Ско 
+sqrt(var(data$Fertility))
+sqrt(var(data$Agriculture))
+sqrt(var(data$Examination))
+sqrt(var(data$Infant.Mortality))
+
+data["Fertility2"] = data$absolute_deviation_Fertility / sqrt(var(data$Fertility))
+data["Agriculture2"] = data$absolute_deviation_Agriculture / sqrt(var(data$Agriculture))
+data["Examination2"] = data$absolute_deviation_Examination / sqrt(var(data$Examination))
+data["Infant.Mortality2"] = data$absolute_deviation_Infant.Mortality / sqrt(var(data$Infant.Mortality))
+
+
+# Проверка зависимости регрессоров -----------------------------------------------------------------------
+
+
+model1 = lm(Agriculture2 ~ Examination2 , data ) # R-squared 47% 
+model2 = lm(Agriculture2 ~ Infant.Mortality2, data ) # R-squared 0.3% 
+model3 = lm(Examination2 ~ Infant.Mortality2, data) # R-squared 1.3% 
+summary(model1)
+summary(model2)
+summary(model3)
+
+#R-squared не превышает 47% значит регрессоры независимы 
+
+model4 = lm(Examination2 ~ I(Examination2^2) , data)
+summary(model4)
+#Examination2^2 линейно незасима от Examination2(R-squared 10%), значит их можно использовать в одной модели 
+
+model5 = lm(Agriculture2 ~ I(Agriculture2^2), data)
+summary(model5)
+#Agriculture2^2 линейно незасима от Agriculture2(R-squared 9%), значит их можно использовать в одной модели 
+
+model6 = lm(Infant.Mortality2 ~ I(Infant.Mortality2^2), data)
+summary(model6)
+#Infant.Mortality2^2 линейно незасима от Infant.Mortality2(R-squared 3%), значит их можно использовать в одной модели
+
+model7 = lm(I(Examination2^2)~I(Agriculture2^2),data)
+summary(model7)
+#Examination2^2 линейно незасима от Agriculture2^2(R-squared 52%), значит их можно использовать в одной модели
+
+model8 = lm(I(Examination2^2)~I(Infant.Mortality2^2), data)
+summary(model8)
+#Examination2^2 линейно незасима от Infant.Mortality2^2(R-squared 32%), значит их можно использовать в одной модели
+model9 = lm(I(Agriculture2^2)~I(Infant.Mortality2^2), data)
+summary(model9)
+#Agriculture2^2 линейно незасима от Infant.Mortality2^2(R-squared 0.4%), значит их можно использовать в одной модели
+
+model10 = lm(Agriculture2 ~ log(Agriculture2),data)
+summary(model10)
+#Agriculture2 линейно засима от log(Agriculture2)(R-squared 67%), значит их не следует использовать в одной модели
+
+model11 = lm(Infant.Mortality2 ~ log(Infant.Mortality2),data)
+summary(model11)
+#Infant.Mortality2 линейно засима от log(Infant.Mortality2)(R-squared 74%), значит их не следует использовать в одной модели
+
+model12 = lm(Examination2 ~ log(Examination2),data)
+summary(model12)
+#Examination2 линейно засима от log(Examination2)(R-squared 75%), значит их не следует использовать в одной модели
+
+model13 = lm(Agriculture2 ~ I(Examination2^2) , data )
+summary(model13)
+#Agriculture2 линейно незасима от Examination2^2 (R-squared 11%), значит их можно следует использовать в одной модели
+
+model14 = lm(Agriculture2 ~ I(Infant.Mortality2^2), data )
+summary(model4)
+#Agriculture2 линейно незасима от Examination2^2 (R-squared 10%), значит их можно следует использовать в одной модели
+
+model15 = lm(Examination2 ~ I(Infant.Mortality2^2), data )
+summary(model5)
+#Examination2 линейно незасима от Examination2^2 (R-squared 9%), значит их можно следует использовать в одной модели
+
+model16 = lm(log(Agriculture2)~log(Infant.Mortality2), data)
+summary(model16)
+#log(Agriculture2) линейно незасима от log(Infant.Mortality2) (R-squared 4%), значит их можно следует использовать в одной модели
+
+model17 = lm(log(Agriculture2)~log(Examination2),data)
+summary(model17)
+#log(Agriculture2) линейно незасима от log(Examination2) (R-squared 20%), значит их можно следует использовать в одной модели
+
+model18 = lm(log(Examination2)~log(Infant.Mortality2),data)
+summary(model18)
+#log(Examination2) линейно незасима от log(Infant.Mortality2) (R-squared 12%), значит их можно использовать в одной модели
+
+model19 = lm(Agriculture2 ~log(Examination2),data )
+summary(model19)
+#Agriculture2 линейно незасима от log(Examination2) (R-squared 30%), значит их можно использовать в одной модели
+model20 = lm(Agriculture2 ~log(Infant.Mortality2),data )
+summary(model20)
+#Agriculture2 линейно незасима от log(Infant.Mortality2) (R-squared 25%), значит их можно использовать в одной модели
+model21 = lm(Examination2~log(Agriculture2),data)
+summary(model21)
+#Examination2 линейно незасима от log(Agriculture2) (R-squared 25%), значит их можно использовать в одной модели
+model22 = lm(Examination2~log(Infant.Mortality2),data)
+summary(model22)
+#Examination2 линейно незасима от log(Infant.Mortality2) (R-squared 0.5%), значит их можно использовать в одной модели
+model23 = lm(Infant.Mortality2~log(Examination2),data)
+summary(model23)
+#Infant.Mortality2 линейно незасима от log(Examination2) (R-squared 4%), значит их можно использовать в одной модели
+model24 = lm(Infant.Mortality2~log(Agriculture2),data)
+summary(model24)
+#Infant.Mortality2 линейно незасима от log(Agriculture2) (R-squared 0.4%), значит их можно использовать в одной модели
+
+# поиск лучшей модели _________________________________________________________________________________________________
+
+fin_model1 = lm(Fertility2 ~ Agriculture2 + Examination2 + Infant.Mortality2, data )
+summary(fin_model1)
+vif(fin_model1)
+# Multiple R-squared = 0.5398 у Examination2 3 звезды, у Infant.Mortality2 2, как видно из строк 44-46 все регрессоры независимы 
+#значение vif у всех трех регрессоров не большое, в диапазоне от 1 до 2   
+
+#теперь попрубуем проверить можно ли избавиться от какого нибудь регрессора который
+#плохо описывет объясняемую переменную Fertility
+#сильно ли измениться Adjusted R-squared ~ 62
+
+#Исключим регрессор Examination2
+#модель2 Adjusted R-squared ~ 0.31 из этого делаем вывод, что Регрессор Examination2
+#Исключать нельзя так как объясняемая переменная Fertility сильно зависит от Examination2
+#значение vif у всех трех регрессоров не большое, в диапазоне от 1 до 1.1   
+fin_model2 <- lm(Fertility2 ~ Agriculture2 + Infant.Mortality2, data)
+summary(fin_model2)
+vif(fin_model2)
+#Исключим регрессор Infant.Mortality2
+#модель2 Adjusted R-squared ~ 0.43 из этого делаем вывод, что Регрессор Infant.Mortality2
+#Исключать нельзя так как объясняемая переменная Fertility сильно зависит от Infant.Mortality2
+#значение vif у всех трех регрессоров не большое, в диапазоне от 1 до 2   
+fin_model3 <- lm(Fertility2 ~ Agriculture2 + Examination2, data)
+summary(fin_model3)
+vif(fin_model3)
+#значение vif у всех регрессоров не большое, в диапазоне от 1 до 1.1 
+#Исключим регрессор Agriculture2
+#модель2 Adjusted R-squared ~ 0.53 из этого делаем вывод, что Регрессор Agriculture2
+#можно исключить так как объясняемая переменная Fertility слабо зависит от Agriculture2
+fin_model4 <- lm(Fertility2 ~ Examination2 + Infant.Mortality2, data)
+summary(fin_model4)
+vif(fin_model4)
+#Из проверки следует, что Agriculture2 можно исключить, а оставшиеся два регрессора описывают объясняемую переменную
+#попробуем ввести новые регрессоры которые линейно независимы с другими регрессорами 
+#и хорошо описывают объясняемую переменную Fertility для этого используем проверки на 
+# зависимость между регрессорами 44 - 129
+
+#добавили регрессор Agriculture2^2 
+#Adjusted R-squared:  0.53  
+#добавленный регрессор слабо описывает объясняемую переменную Fertility, его можно не добавлять
+#значение vif у всех трех регрессоров не большое, в диапазоне от 1 до 1.1 
+fin_model5 <- lm(Fertility2 ~ I(Agriculture2^2) + Examination2 + Infant.Mortality2 , data)
+summary(fin_model5)
+vif(fin_model5)
+#Добавим регрессор Examination2^2 он линейно независим с Examination2, значит можно использовать из вместе
+fin_model6 = lm(Fertility2 ~ I(Examination2^2) + Examination2 + Infant.Mortality2 , data)
+summary(fin_model6)
+#Adjusted R-squared:  0.53  
+#добавленный регрессор слабо описывает объясняемую переменную Fertility, его можно не добавлять 
+#значение vif у всех трех регрессоров не большое, в диапазоне от 1 до 1.1 
+vif(fin_model6)
+#Добавим регрессор Infant.Mortality2^2 
+fin_model7 = lm(Fertility2 ~ I(Infant.Mortality2^2) + Examination2 + Infant.Mortality2 , data)
+summary(fin_model7)
+#Adjusted R-squared:  0.55
+#добавленный регрессор хорошо описывает объясняемую переменную Fertility можно его оставить 
+vif(fin_model7)
+#значение vif у всех трех регрессоров не большое, в диапазоне от 1 до 1.1 
+#Добавим регрессор log(Examination2) и убёрем Examination2 так как они линейно зависимы 
+fin_model8 = lm(Fertility2 ~ I(Infant.Mortality2^2) + log(Examination2) + Infant.Mortality2 , data)
+summary(fin_model8)
+vif(fin_model8)
+#значение vif I(Infant.Mortality2^2 2.66 у Infant.Mortality2 2.60
+#Adjusted R-squared:  0.40 
+# добавленный регрессор негативно повлиял на модель 
+
+#Добавим регрессор log(Infant.Mortality2) и убёрем Infant.Mortality2 так как они линейно зависимы 
+fin_model9 = lm(Fertility2 ~ I(Infant.Mortality2^2) + Examination2 + log(Infant.Mortality2) , data)
+summary(fin_model9)
+vif(fin_model9)
+#Adjusted R-squared:  0.49 
+# добавленный регрессор негативно повлиял на модель
+#значение vif I(Infant.Mortality2^2 2.66 у Infant.Mortality2 1.94
+#Добавим регрессор log(Agriculture2) 
+fin_model10 = lm(Fertility2 ~ log(Agriculture2)+I(Infant.Mortality2^2)+(Examination2*log(Agriculture2))+Infant.Mortality2, data)
+summary(fin_model10)
+vif(fin_model10)
+#Adjusted R-squared:  0.64
+# добавленный регрессор положительно  повлиял на модель
+#значение vif у всех регрессоров маленькое <1 значит это самая лучшая модель
+
+# модель fin_model10 оказалась лучшей у неё самый большой Adjusted R-squared среди всех моделей 
+# Adjusted R-squared fin_model10 = 0.64, кол-во звёзд log(Agriculture2) - 0 Infant.Mortality2^2 - 1 Examination2 -2 
+# Infant.Mortality2 -3 
